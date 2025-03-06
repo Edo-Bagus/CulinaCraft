@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  ai-model:
+    build: ./ai-model
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./ai-model:/app
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+
+  culina-craft:
+    build: ./culina-craft
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./culina-craft:/app
+    environment:
+      - NODE_ENV=production
