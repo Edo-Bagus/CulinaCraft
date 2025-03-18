@@ -1,0 +1,10 @@
+pandas
+scikit-learn
+numpy
+
+
+spacy
+transformers
+datasets
+torch
+seqeval
