@@ -9,6 +9,7 @@ interface RecipeCardProps {
   calories: string;
   rating: number;
   imageUrl: string;
+  width?: string;
 }
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ title, calories, rating, imageUrl }) => {
