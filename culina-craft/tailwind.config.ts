@@ -9,7 +9,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--backgrou nd)",
+        background: "var(--background)",
         foreground: "var(--foreground)",
       },
       fontFamily: {
@@ -17,5 +17,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require("tailwind-scrollbar-hide"), // Menambahkan plugin scrollbar-hide
+  ],
 } satisfies Config;

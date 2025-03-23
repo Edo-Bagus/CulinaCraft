@@ -3,6 +3,8 @@ import RecipeCard from "@/components/card1";
 import Navbar from "@/components/navbar";
 import Image from "next/image";
 import { FaArrowRight } from "react-icons/fa";
+import Footer from "@/components/footer";
+import Copyright from "@/components/copyright";
 
 export default function Home() {
   return (
@@ -52,63 +54,18 @@ export default function Home() {
   <h3 className="text-3xl font-bold text-[#DD6840] text-center">Popular Recipes</h3>
   <p className="text-black text-md mt-1 text-center">Discover today’s delicious choices for simple, fun meals to make!</p>
 
-  <div className="flex justify-start mt-8 space-x-8 py-4 overflow-x-auto w-full">
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px" // Adjust width to be more reasonable
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
-  <RecipeCard
-    title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-    calories="300 cal"
-    rating={4.5}
-    imageUrl="/resep1.jpg" // Ganti dengan path gambar yang sesuai
-    width="250px"
-  />
+  <div className="flex justify-start mt-8 space-x-8 py-4 overflow-x-auto w-full scrollbar-hide">
+    {Array(10).fill(null).map((_, index) => (
+              <div key={index} className="min-w-[280px] max-w-[300px] flex-shrink-0">
+                <RecipeCard
+                  title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
+                  calories="300 cal"
+                  rating={4.5}
+                  imageUrl="/resep1.jpg"
+                  // width="100%" // Pastikan responsif
+                />
+              </div>
+    ))}
 </div>
 
 
@@ -198,16 +155,8 @@ export default function Home() {
     </div>
   </div>
 </section>
-
-
-
-{/* Footer */}
-<footer className="bg-[#E17C38] text-white text-center py-12 px-16 mt-12">
-
-  <div className="mt-8">
-    <p className="text-md">© 2025 CulinaCraft. All rights reserved.</p>
-  </div>
-</footer>
+    <Footer />
+    <Copyright />
     </div>
   );
 }

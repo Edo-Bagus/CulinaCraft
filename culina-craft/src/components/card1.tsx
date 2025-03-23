@@ -14,8 +14,7 @@ interface RecipeCardProps {
 
 const RecipeCard: React.FC<RecipeCardProps> = ({ title, calories, rating, imageUrl }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-4 w-[302px] 
-                    transition-transform duration-300 hover:scale-105">
+    <div className="bg-white rounded-2xl shadow-lg p-4 w-full min-w-[200px] h-auto max-w-[300px] mx-auto transition-transform duration-300 hover:scale-105">
       {/* Gambar Resep */}
       <div>
         <Image

@@ -1,8 +1,8 @@
 "use client";
 
-
 import Navbar from "@/components/navbar";
-// import Footer from "@/components/footer";
+import Footer from "@/components/footer";
+import Copyright from "@/components/copyright";
 import { useState } from "react";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
@@ -51,97 +51,105 @@ export default function UploadRecipePage() {
           Share Your Culinary Creations! Upload your recipe and inspire food lovers everywhere!
         </p>
 
-        <div className="bg-[#85A181] text-white p-6 rounded-2xl w-full max-w-3xl mt-6">
-          {/* Recipe Name */}
-          <div className="mb-4">
-            <label className="block text-lg mb-1">Recipe Name</label>
-            <input
-              type="text"
-              placeholder="ex : Scrambled Egg"
-              className="w-full p-2 text-black rounded-md"
-            />
-          </div>
-
-          {/* Ingredients */}
-          <div className="mb-4">
-            <label className="block text-lg mb-1">Ingredients</label>
-            {ingredients.map((ingredient, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
-                <span className="bg-[#E7AC5F] px-3 py-1 rounded-full">{index + 1}</span>
+        <div className="bg-[#85A181] text-white p-6 rounded-2xl w-full max-w-5xl mt-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Section (Recipe Form) */}
+            <div className="flex-1">
+              {/* Recipe Name */}
+              <div className="mb-4">
+                <label className="block text-lg mb-1">Recipe Name</label>
                 <input
                   type="text"
-                  value={ingredient}
-                  onChange={(e) => handleIngredientChange(index, e.target.value)}
-                  placeholder="ex : 1 pcs Egg"
+                  placeholder="ex : Scrambled Egg"
                   className="w-full p-2 text-black rounded-md"
                 />
-                <button onClick={() => removeIngredient(index)} className="text-[#B6DEB0]">
-                  <FaRegTrashAlt size={20} />
+              </div>
+
+              {/* Ingredients */}
+              <div className="mb-4">
+                <label className="block text-lg mb-1">Ingredients</label>
+                {ingredients.map((ingredient, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-2">
+                    <span className="bg-[#E7AC5F] px-3 py-1 rounded-full">{index + 1}</span>
+                    <input
+                      type="text"
+                      value={ingredient}
+                      onChange={(e) => handleIngredientChange(index, e.target.value)}
+                      placeholder="ex : 1 pcs Egg"
+                      className="w-full p-2 text-black rounded-md"
+                    />
+                    <button onClick={() => removeIngredient(index)} className="text-[#B6DEB0]">
+                      <FaRegTrashAlt size={20} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={addIngredient}
+                  className="flex items-center bg-[#DD6840] px-3 py-1 rounded-md mt-2"
+                >
+                  <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Ingredient
                 </button>
               </div>
-            ))}
-            <button
-              onClick={addIngredient}
-              className="flex items-center bg-[#DD6840] px-3 py-1 rounded-md mt-2"
-            >
-              <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Ingredient
-            </button>
-          </div>
 
-          {/* Steps */}
-          <div className="mb-4">
-            <label className="block text-lg mb-1">Step by Step</label>
-            {steps.map((step, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
-                <span className="bg-[#E7AC5F] px-3 py-1 rounded-full">{index + 1}</span>
+              {/* Steps */}
+              <div className="mb-4">
+                <label className="block text-lg mb-1">Step by Step</label>
+                {steps.map((step, index) => (
+                  <div key={index} className="flex items-center space-x-2 mb-2">
+                    <span className="bg-[#E7AC5F] px-3 py-1 rounded-full">{index + 1}</span>
+                    <input
+                      type="text"
+                      value={step}
+                      onChange={(e) => handleStepChange(index, e.target.value)}
+                      placeholder="ex : Prepare all ingredients"
+                      className="w-full p-2 text-black rounded-md"
+                    />
+                    <button onClick={() => removeStep(index)} className="text-[#B6DEB0]">
+                      <FaRegTrashAlt size={20} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={addStep}
+                  className="flex items-center bg-[#DD6840] px-3 py-1 rounded-md mt-2"
+                >
+                  <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Step
+                </button>
+              </div>
+            </div>
+
+            {/* Right Section (Image Upload) */}
+            <div className="flex-1">
+              <label className="block text-lg mb-1">Upload Photo</label>
+              <div className="border-2 border-dashed border-gray-300 p-6 rounded-md text-center">
+                {image ? (
+                  <img src={image} alt="Recipe" className="w-full h-full object-cover rounded-md" />
+                ) : (
+                  <p>Upload a photo of your dish to showcase your recipe</p>
+                )}
                 <input
-                  type="text"
-                  value={step}
-                  onChange={(e) => handleStepChange(index, e.target.value)}
-                  placeholder="ex : Prepare all ingredients"
-                  className="w-full p-2 text-black rounded-md"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full mt-2"
                 />
-                <button onClick={() => removeStep(index)} className="text-[#B6DEB0]">
-                  <FaRegTrashAlt size={20}/>
-                </button>
               </div>
-            ))}
-            <button
-              onClick={addStep}
-              className="flex items-center bg-[#DD6840] px-3 py-1 rounded-md mt-2"
-            >
-              <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Step
-            </button>
-          </div>
-
-          {/* Image Upload */}
-          <div className="mb-4">
-            <label className="block text-lg mb-1">Upload Photo</label>
-            <div className="border-2 border-dashed border-gray-300 p-6 rounded-md text-center">
-              {image ? (
-                <img src={image} alt="Recipe" className="w-full h-40 object-cover rounded-md" />
-              ) : (
-                <p>Upload a photo of your dish to showcase your recipe</p>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full mt-2"
-              />
             </div>
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-between">
-            <button className="border-2 border-orange-500 text-orange-500 px-4 py-2 rounded-md">
+          <div className="flex justify-end mt-6 gap-4">
+            <button className="bg-white text-[#DD6840] px-4 py-2 rounded-md border border-[#DD6840]">
               Cancel Upload
             </button>
-            <button className="bg-orange-500 px-4 py-2 rounded-md">Submit Recipe</button>
+            <button className="bg-[#DD6840] text-white px-4 py-2 rounded-md">
+              Submit Recipe
+            </button>
           </div>
         </div>
       </main>
-      {/* <Footer /> */}
+      <Footer />
+      <Copyright />
     </div>
   );
 }
