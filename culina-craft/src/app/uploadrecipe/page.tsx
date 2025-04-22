@@ -85,7 +85,7 @@ export default function UploadRecipePage() {
                 ))}
                 <button
                   onClick={addIngredient}
-                  className="flex items-center bg-[#DD6840] px-3 py-1 rounded-md mt-2"
+                  className="flex items-center bg-[#DD6840] px-3 py-1 rounded-full mt-2"
                 >
                   <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Ingredient
                 </button>
@@ -111,7 +111,7 @@ export default function UploadRecipePage() {
                 ))}
                 <button
                   onClick={addStep}
-                  className="flex items-center bg-[#DD6840] px-3 py-1 rounded-md mt-2"
+                  className="flex items-center bg-[#DD6840] px-3 py-1 rounded-full mt-2"
                 >
                   <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Step
                 </button>
