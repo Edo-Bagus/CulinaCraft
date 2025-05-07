@@ -1,29 +1,21 @@
 // lib/mongodb.ts
-import { MongoClient } from "mongodb";
+import mongoose from 'mongoose';
 
-const uri = process.env.MONGODB_URI!;
-const options = {};
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+if (!MONGODB_URI) throw new Error('Please define the MONGODB_URI in .env.local');
 
-declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
-}
+let cached = (global as any).mongoose || { conn: null, promise: null };
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI in .env.local");
-}
+export async function connectDB() {
+  if (cached.conn) return cached.conn;
 
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      bufferCommands: false,
+    });
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
-}
 
-export default clientPromise;
+  cached.conn = await cached.promise;
+  return cached.conn;
+}

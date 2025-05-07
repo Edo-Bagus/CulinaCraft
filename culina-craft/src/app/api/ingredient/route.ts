@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { connectDB } from "@/lib/mongodb";
+import Ingredient from "@/models/Ingredients";
+import { isValidObjectId } from "mongoose";
 
-export async function GET(req: NextRequest) {
+// GET: Get all ingredients
+export async function GET() {
   try {
-    const client = await clientPromise;
-    const db = client.db("CulinaCraft");
-    const ingredients = await db.collection("Ingredient").find().toArray();
-
+    await connectDB();
+    const ingredients = await Ingredient.find();
     return NextResponse.json(ingredients);
   } catch (e) {
     return NextResponse.json({ error: "Failed to fetch ingredients" }, { status: 500 });
   }
 }
 
+// POST: Create new ingredient
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-
-    const { name, unit, quantity } = body;
+    const { name, unit, quantity } = await req.json();
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
@@ -32,99 +31,64 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Quantity is required and must be a number" }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("CulinaCraft");
-    const result = await db.collection("Ingredient").insertOne({
-      name,
-      unit,
-      quantity
-    });
+    await connectDB();
+    const newIngredient = await Ingredient.create({ name, unit, quantity });
 
-    return NextResponse.json({
-      success: true,
-      insertedId: result.insertedId
-    });
+    return NextResponse.json({ success: true, insertedId: newIngredient._id });
   } catch (e) {
     return NextResponse.json({ error: "Failed to create ingredient" }, { status: 500 });
   }
 }
 
+// PUT: Update ingredient
 export async function PUT(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    if (!id) {
-      return NextResponse.json({ error: "Ingredient ID is required" }, { status: 400 });
+    if (!id || !isValidObjectId(id)) {
+      return NextResponse.json({ error: "Valid Ingredient ID is required" }, { status: 400 });
     }
 
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid Ingredient ID format" }, { status: 400 });
+    const { name, unit, quantity } = await req.json();
+
+    if (!name || typeof name !== "string" ||
+        !unit || typeof unit !== "string" ||
+        quantity === undefined || typeof quantity !== "number") {
+      return NextResponse.json({ error: "Invalid fields" }, { status: 400 });
     }
 
-    const body = await req.json();
-    const { name, unit, quantity } = body;
+    await connectDB();
+    const updated = await Ingredient.findByIdAndUpdate(id, { name, unit, quantity }, { new: true });
 
-    if (!name || typeof name !== "string") {
-      return NextResponse.json({ error: "Name is required and must be a string" }, { status: 400 });
-    }
-
-    if (!unit || typeof unit !== "string") {
-      return NextResponse.json({ error: "Unit is required and must be a string" }, { status: 400 });
-    }
-
-    if (quantity === undefined || typeof quantity !== "number") {
-      return NextResponse.json({ error: "Quantity is required and must be a number" }, { status: 400 });
-    }
-
-    const client = await clientPromise;
-    const db = client.db("CulinaCraft");
-
-    const result = await db.collection("Ingredient").updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { name, unit, quantity } }
-    );
-
-    if (result.matchedCount === 0) {
+    if (!updated) {
       return NextResponse.json({ error: "Ingredient not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      modifiedCount: result.modifiedCount
-    });
+    return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: "Failed to update ingredient" }, { status: 500 });
   }
 }
 
+// DELETE: Delete ingredient
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    if (!id) {
-      return NextResponse.json({ error: "Ingredient ID is required" }, { status: 400 });
+    if (!id || !isValidObjectId(id)) {
+      return NextResponse.json({ error: "Valid Ingredient ID is required" }, { status: 400 });
     }
 
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid Ingredient ID format" }, { status: 400 });
-    }
+    await connectDB();
+    const deleted = await Ingredient.findByIdAndDelete(id);
 
-    const client = await clientPromise;
-    const db = client.db("CulinaCraft");
-    const result = await db.collection("Ingredient").deleteOne({
-      _id: new ObjectId(id)
-    });
-
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: "Ingredient not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      deletedCount: result.deletedCount
-    });
+    return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: "Failed to delete ingredient" }, { status: 500 });
   }

@@ -1,10 +1,34 @@
 // app/login/page.tsx
-
 "use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import Link from "next/link";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      router.push("/"); // arahkan ke halaman setelah login
+    } else {
+      setError(data.error || "Login failed");
+    }
+  };
+
   return (
     <div className="flex h-screen">
       {/* Left Side (Logo) */}
@@ -20,13 +44,15 @@ export default function LoginPage() {
       <div className="w-1/2 bg-[#88A187] flex items-center justify-center">
         <div className="w-full max-w-sm">
           <h2 className="text-3xl font-semibold text-[#F5D287] mb-6 text-center">Login</h2>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleLogin}>
             <div>
-              <label className="text-[#F5D287] text-sm mb-1 block">Username:</label>
+              <label className="text-[#F5D287] text-sm mb-1 block">Email:</label>
               <input
                 type="text"
                 className="w-full px-4 py-2 rounded-lg outline-none"
-                placeholder="Enter your username"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -35,6 +61,8 @@ export default function LoginPage() {
                 type="password"
                 className="w-full px-4 py-2 rounded-lg outline-none"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <button

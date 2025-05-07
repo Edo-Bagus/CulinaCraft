@@ -7,9 +7,11 @@ import Footer from "@/components/footer";
 import Copyright from "@/components/copyright";
 import { IoMdAdd } from "react-icons/io";
 import SearchBar from "@/components/searchbar";
+import { useRouter } from "next/navigation";
 
 const ProfilePage: React.FC = () => {
-  const [name, setName] = useState<string>("");
+  const router = useRouter();
+  const [user, setUser] = useState<{ email?: string; username?: string } | null>(null);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -17,8 +19,10 @@ const ProfilePage: React.FC = () => {
     const fetchProfileAndIngredients = async () => {
       try {
         const profileRes = await fetch("/api/account");
-        const profileData = await profileRes.json();
-        setName(profileData.name);
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          setUser(data.user);
+        }
 
         const ingredientsRes = await fetch("/api/ingredient");
         const ingredientsData = await ingredientsRes.json();
@@ -34,6 +38,18 @@ const ProfilePage: React.FC = () => {
     fetchProfileAndIngredients();
   }, []);
 
+  const handleLogout = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const res = await fetch("/api/auth/logout", {
+      method: "POST"
+    });
+
+    if (res.ok) {
+      router.push("/login"); // arahkan ke halaman setelah login
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -47,7 +63,7 @@ const ProfilePage: React.FC = () => {
                 <div className="flex flex-col items-center">
                   <div className="w-32 h-32 lg:w-40 lg:h-40 bg-[#E3E2E2] rounded-full" />
                   <h1 className="text-[#E7AC5F] text-lg font-semibold mt-3 lg:mt-4">
-                    {name || "Loading..."}
+                    {user?.username || "Loading..."}
                   </h1>
                   <p className="text-xs lg:text-sm text-gray-500 text-center mt-1 lg:mt-2">
                     "Cooking my way through flavors! Exploring, creating, and sharing delicious moments one recipe at a time."
@@ -55,6 +71,12 @@ const ProfilePage: React.FC = () => {
                   <div className="text-xs lg:text-sm text-gray-500 mt-3 lg:mt-4">
                     <p>Joined since: November 2024</p>
                   </div>
+                  <button
+                    onClick={handleLogout}
+                    className="mt-3 lg:mt-4 px-4 py-2 text-sm lg:text-base bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
 
