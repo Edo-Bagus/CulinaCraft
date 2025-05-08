@@ -81,6 +81,7 @@ export default function Home() {
         recipes.map((recipe) => (
           <div key={String(recipe._id)} className="min-w-[280px] max-w-[300px] flex-shrink-0">
             <RecipeCard
+              id={String(recipe._id)}
               title={recipe.name}
               calories={`${recipe.calories} cal`}
               rating={recipe.rating}
@@ -138,6 +139,7 @@ export default function Home() {
       >
         {/* Recipe Card */}
         <RecipeCard
+          id={String(index)}
           title={recipe.title}
           calories={recipe.calories}
           rating={recipe.rating}

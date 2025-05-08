@@ -3,8 +3,9 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Copyright from "@/components/copyright";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { IUser } from "@/models/Users";
 import { IoMdAdd } from "react-icons/io";
 
 export default function UploadRecipePage() {
@@ -12,6 +13,8 @@ export default function UploadRecipePage() {
   const [ingredients, setIngredients] = useState([""]);
   const [steps, setSteps] = useState([""]);
   const [image, setImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  
 
   const handleIngredientChange = (index: number, value: string) => {
     const newIngredients = [...ingredients];
@@ -77,6 +80,9 @@ export default function UploadRecipePage() {
     }
   };
   
+  if (loading) {
+    return <div className="text-center mt-10">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

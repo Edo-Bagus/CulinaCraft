@@ -1,4 +1,4 @@
-import { Schema, Document, models, model } from 'mongoose';
+import { Schema, Document, models, model, Types } from 'mongoose';
 
 export interface IRecipe extends Document {
   name: string;
@@ -7,6 +7,7 @@ export interface IRecipe extends Document {
   calories: number;
   rating: number;
   like: number;
+  authorId: string;
 }
 
 const RecipeSchema = new Schema<IRecipe>({
@@ -16,6 +17,7 @@ const RecipeSchema = new Schema<IRecipe>({
   calories: { type: Number, default: 0 },
   rating: { type: Number, default: 2.5 },
   like: { type: Number, default: 0 },
+  authorId: { type: String, required: true },
 });
 
 export default models.Recipe || model<IRecipe>('Recipe', RecipeSchema);

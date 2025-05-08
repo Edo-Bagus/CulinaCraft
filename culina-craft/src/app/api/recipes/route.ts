@@ -2,22 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Recipe from "@/models/Recipe"; // pastikan path-nya sesuai struktur proyekmu
 import { connectDB } from "@/lib/mongodb";
+import { verifyToken } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
 
-    // Get query parameters
-    const sortBy = searchParams.get("sortBy") || "name"; // default sort field
-    const order = searchParams.get("order") === "desc" ? -1 : 1; // asc by default
-    const limit = parseInt(searchParams.get("limit") || "0"); // 0 = no limit
+    // Ambil parameter query
+    const sortBy = searchParams.get("sortBy") || "name"; // default sort
+    const order = searchParams.get("order") === "desc" ? -1 : 1;
+    const limit = parseInt(searchParams.get("limit") || "0");
+    const authorId = searchParams.get("authorId"); // id user penulis resep
 
-    // Validate sort field
+    // Validasi field sort
     const validFields = ["name", "calories", "rating", "like"];
     const sortField = validFields.includes(sortBy) ? sortBy : "name";
 
-    const recipes = await Recipe.find()
+    // Buat filter
+    const filter: any = {};
+    if (authorId) {
+      filter.authorId = authorId;
+    }
+
+    // Query resep
+    const recipes = await Recipe.find(filter)
       .sort({ [sortField]: order })
       .limit(limit);
 
@@ -28,12 +37,22 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
     const { name, ingredients, steps } = body;
 
+    // Ambil token dari cookies
+    const token = req.cookies.get('token')?.value;
+    const user = token ? await verifyToken(token) : null;
+    
+    if (!user || !user.id) {
+      return NextResponse.json({ error: "Unauthorized" , message: user}, { status: 401 });
+    }
+
+    // Validasi data
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Recipe name is required and must be a string" }, { status: 400 });
     }
@@ -46,14 +65,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Steps must be an array of strings" }, { status: 400 });
     }
 
-    const recipe = new Recipe({ name, ingredients, steps });
-    console.log("Recipe to be saved:", recipe); // Debugging line
+    // Buat resep dan set author dari user.id
+    const recipe = new Recipe({ name, ingredients, steps, authorId: user.id });
     await recipe.save();
 
     return NextResponse.json({ insertedId: recipe._id });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: "Failed to insert recipe", message: errorMessage}, { status: 500 });
+    console.error("Failed to insert recipe:", errorMessage);
+    return NextResponse.json({ error: "Failed to insert recipe", message: errorMessage }, { status: 500 });
   }
 }
 

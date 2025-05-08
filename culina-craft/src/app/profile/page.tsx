@@ -7,11 +7,15 @@ import Footer from "@/components/footer";
 import Copyright from "@/components/copyright";
 import { IoMdAdd } from "react-icons/io";
 import SearchBar from "@/components/searchbar";
+import { IUser } from "@/models/Users";
 import { useRouter } from "next/navigation";
+import { IRecipe } from "@/models/Recipe";
 
 const ProfilePage: React.FC = () => {
   const router = useRouter();
-  const [user, setUser] = useState<{ email?: string; username?: string } | null>(null);
+  const [user, setUser] = useState<IUser>();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userRecipes, setUserRecipes] = useState<IRecipe[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -22,6 +26,7 @@ const ProfilePage: React.FC = () => {
         if (profileRes.ok) {
           const data = await profileRes.json();
           setUser(data.user);
+          setUserId(data.user.id);
         }
 
         const ingredientsRes = await fetch("/api/ingredient");
@@ -37,6 +42,25 @@ const ProfilePage: React.FC = () => {
 
     fetchProfileAndIngredients();
   }, []);
+
+    // Fetch resep setelah userId tersedia
+  useEffect(() => {
+    if (!userId) return; // jangan fetch kalau userId belum ada
+
+    const fetchUserRecipes = async () => {
+      try {
+        const recipesRes = await fetch(`/api/recipes?authorId=${userId}`);
+        const recipesData = await recipesRes.json();
+        setUserRecipes(recipesData);
+      } catch (error) {
+        console.error("Failed to fetch user recipes", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserRecipes();
+  }, [userId]);
 
   const handleLogout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,21 +199,29 @@ const ProfilePage: React.FC = () => {
         <section className="mt-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-800">My Recipes</h3>
-            <button className="flex items-center bg-[#DD6840] text-white px-3 py-1 rounded-full mt-2">
+            <button 
+              className="flex items-center bg-[#DD6840] text-white px-3 py-1 rounded-full mt-2"
+              onClick={() => router.push("/uploadrecipe")}
+            >
               <IoMdAdd size={20} className="mr-1 text-[#B6DEB0]" /> Upload More Recipes
             </button>
           </div>
           <div className="flex justify-start space-x-8 py-4 overflow-x-auto w-full scrollbar-hide">
-            {Array(10).fill(null).map((_, index) => (
-              <div key={index} className="min-w-[280px] max-w-[300px] flex-shrink-0">
-                <RecipeCard
-                  title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-                  calories="300 cal"
-                  rating={4.5}
-                  imageUrl="/resep1.jpg"
-                />
-              </div>
-            ))}
+          {loading ? (
+              <p>Loading...</p>
+            ) : (
+              userRecipes.map((recipe) => (
+                <div key={String(recipe._id)} className="min-w-[280px] max-w-[300px] flex-shrink-0">
+                  <RecipeCard
+                    id={String(recipe._id)}
+                    title={recipe.name}
+                    calories={`${recipe.calories} cal`}
+                    rating={recipe.rating}
+                    imageUrl="/resep1.jpg"
+                  />
+                </div>
+              ))
+            )}
           </div>
         </section>
       </main>
