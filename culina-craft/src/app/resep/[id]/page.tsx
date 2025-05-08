@@ -4,12 +4,17 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Copyright from "@/components/copyright";
 import { useParams } from "next/navigation";
-
+import { FaStar, FaRegStar, FaHeart, FaRegHeart } from "react-icons/fa";
 
 const RecipePage: React.FC = () => {
   const { id } = useParams();
   const [recipe, setRecipe] = React.useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // State for user interaction
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -27,6 +32,16 @@ const RecipePage: React.FC = () => {
     if (id) fetchRecipe();
   }, [id]);
 
+  const handleRating = (rating: number) => {
+    setUserRating(rating);
+    // TODO: Save rating to backend if needed
+  };
+
+  const toggleLike = () => {
+    setLiked(prev => !prev);
+    // TODO: Save like to backend if needed
+  };
+
   if (loading) {
     return <div className="text-center mt-10">Loading...</div>;
   }
@@ -35,11 +50,10 @@ const RecipePage: React.FC = () => {
     return <div className="text-center mt-10 text-red-500">Recipe not found.</div>;
   }
 
-
   return (
     <div className="flex flex-col min-h-screen bg-[#F9F9F9] font-sans">
       <Navbar />
-  
+
       {/* Content Wrapper */}
       <main className="flex-grow">
         {/* Recipe Header */}
@@ -52,11 +66,34 @@ const RecipePage: React.FC = () => {
           <div>
             <h1 className="text-lg sm:text-2xl text-[#F4E8B4] font-bold">{recipe.name}</h1>
             <p className="text-gray-700 flex items-center gap-2 text-sm sm:text-base">
-              <span>{recipe.calories}</span> <span className="text-yellow-600">⭐ {recipe.rating}</span> | <span>Fun Fact ❤️</span>
+              <span>{recipe.calories}</span> | <span className="text-yellow-600">⭐ {recipe.rating}</span>
             </p>
+
+            {/* Rating and Like Section */}
+            <div className="flex items-center gap-4 mt-2">
+              {/* Star Rating */}
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    onClick={() => handleRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="cursor-pointer text-yellow-500 text-xl"
+                  >
+                    {star <= (hoverRating || userRating) ? <FaStar /> : <FaRegStar />}
+                  </span>
+                ))}
+              </div>
+
+              {/* Like Button */}
+              <button onClick={toggleLike} className="text-red-500 text-xl focus:outline-none">
+                {liked ? <FaHeart /> : <FaRegHeart />}
+              </button>
+            </div>
           </div>
         </div>
-  
+
         {/* Ingredients and Steps */}
         <section className="flex flex-wrap justify-center px-6 gap-6 mb-10">
           <div className="bg-[#FFF3C4] p-6 rounded-lg w-full sm:w-1/3 relative">
@@ -71,7 +108,7 @@ const RecipePage: React.FC = () => {
               ))}
             </ol>
           </div>
-  
+
           <div className="bg-[#FFF3C4] p-6 rounded-lg w-full sm:w-1/3 relative">
             <h2 className="text-xl text-[#85A181] font-semibold bg-[#FFF3C4] px-4 py-2 rounded-t-lg absolute -top-4 left-6">
               Steps
@@ -86,12 +123,12 @@ const RecipePage: React.FC = () => {
           </div>
         </section>
       </main>
-  
+
       {/* Footer */}
-    <Footer />
-    <Copyright />
+      <Footer />
+      <Copyright />
     </div>
-  );  
+  );
 };
 
 export default RecipePage;
