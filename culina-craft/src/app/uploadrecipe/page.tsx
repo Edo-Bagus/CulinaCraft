@@ -8,6 +8,7 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 
 export default function UploadRecipePage() {
+  const [recipeName, setRecipeName] = useState("");
   const [ingredients, setIngredients] = useState([""]);
   const [steps, setSteps] = useState([""]);
   const [image, setImage] = useState<string | null>(null);
@@ -42,6 +43,41 @@ export default function UploadRecipePage() {
     }
   };
 
+  const handleSubmit = async () => {
+    const payload = {
+      name: recipeName,
+      ingredients: ingredients.filter((item) => item.trim() !== ""),
+      steps: steps.filter((item) => item.trim() !== ""),
+    };
+  
+    try {
+      const res = await fetch("/api/recipes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!res.ok) {
+        throw new Error("Failed to upload recipe");
+      }
+  
+      const data = await res.json();
+      console.log("Recipe uploaded:", data);
+      alert("Recipe uploaded successfully!");
+  
+      // Reset form
+      setRecipeName("");
+      setIngredients([""]);
+      setSteps([""]);
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to upload recipe");
+    }
+  };
+  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -60,6 +96,8 @@ export default function UploadRecipePage() {
                 <label className="block text-lg mb-1">Recipe Name</label>
                 <input
                   type="text"
+                  value={recipeName}
+                  onChange={(e) => setRecipeName(e.target.value)}
                   placeholder="ex : Scrambled Egg"
                   className="w-full p-2 text-black rounded-md"
                 />
@@ -142,7 +180,10 @@ export default function UploadRecipePage() {
             <button className="bg-white text-[#DD6840] px-4 py-2 rounded-md border border-[#DD6840]">
               Cancel Upload
             </button>
-            <button className="bg-[#DD6840] text-white px-4 py-2 rounded-md">
+            <button 
+              className="bg-[#DD6840] text-white px-4 py-2 rounded-md"
+              onClick={handleSubmit}
+            >
               Submit Recipe
             </button>
           </div>

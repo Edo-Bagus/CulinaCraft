@@ -5,8 +5,28 @@ import Image from "next/image";
 import { FaArrowRight } from "react-icons/fa";
 import Footer from "@/components/footer";
 import Copyright from "@/components/copyright";
+import { useEffect, useState } from "react";
+import { IRecipe } from "@/models/Recipe";
 
 export default function Home() {
+  const [recipes, setRecipes] = useState<IRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const res = await fetch("/api/recipes?sortBy=like&order=desc&limit=5");
+        const data = await res.json();
+        setRecipes(data);
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
   return (
     <div className="bg-gray-100 min-h-screen">
        <Navbar/>
@@ -55,17 +75,20 @@ export default function Home() {
   <p className="text-black text-md mt-1 text-center">Discover today’s delicious choices for simple, fun meals to make!</p>
 
   <div className="flex justify-start mt-8 space-x-8 py-4 overflow-x-auto w-full scrollbar-hide">
-    {Array(10).fill(null).map((_, index) => (
-              <div key={index} className="min-w-[280px] max-w-[300px] flex-shrink-0">
-                <RecipeCard
-                  title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-                  calories="300 cal"
-                  rating={4.5}
-                  imageUrl="/resep1.jpg"
-                  // width="100%" // Pastikan responsif
-                />
-              </div>
-    ))}
+  {loading ? (
+        <p>Loading...</p>
+      ) : (
+        recipes.map((recipe) => (
+          <div key={String(recipe._id)} className="min-w-[280px] max-w-[300px] flex-shrink-0">
+            <RecipeCard
+              title={recipe.name}
+              calories={`${recipe.calories} cal`}
+              rating={recipe.rating}
+              imageUrl="/resep1.jpg"
+            />
+          </div>
+        ))
+      )}
 </div>
 
 
