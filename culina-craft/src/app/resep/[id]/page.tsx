@@ -122,6 +122,17 @@ const RecipePage: React.FC = () => {
             </ol>
           </div>
         </section>
+
+        {/* Nutrition Info Section */}
+        <section className="w-3/4 mx-auto bg-white p-6 rounded-lg shadow-md mb-10">
+          <h2 className="text-xl font-semibold text-[#85A181] mb-4">Nutrition Information</h2>
+          <p className="text-gray-700 text-sm sm:text-base">
+            This dish contains approximately <span className="font-semibold text-[#85A181]">450 calories</span>, 
+            with <span className="font-semibold text-[#85A181]">20g of protein</span>, 
+            <span className="font-semibold text-[#85A181]"> 15g of fat</span>, and 
+            <span className="font-semibold text-[#85A181]"> 50g of carbohydrates</span>.
+          </p>
+        </section>
       </main>
 
       {/* Footer */}
