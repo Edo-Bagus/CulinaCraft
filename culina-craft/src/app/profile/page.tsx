@@ -14,7 +14,69 @@ import { IRecipe } from "@/models/Recipe";
 const ProfilePage: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<IUser>();
+  const [showPopup, setShowPopup] = useState(false);
+  const [newIngredient, setNewIngredient] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const handleRemoveIngredient = async (indexToRemove: number) => {
+    const nameToRemove = ingredients[indexToRemove];
+  
+    try {
+      const res = await fetch(`/api/ingredient?name=${encodeURIComponent(nameToRemove)}`, {
+        method: "DELETE",
+      });
+  
+      if (res.ok) {
+        setIngredients(prev => prev.filter((_, idx) => idx !== indexToRemove));
+      } else {
+        console.error("Failed to delete ingredient");
+        alert("Gagal menghapus ingredient.");
+      }
+    } catch (error) {
+      console.error("Error deleting ingredient", error);
+      alert("Terjadi kesalahan saat menghapus.");
+    }
+  };
+  
+  const handleAddIngredient = async () => {
+    const trimmedIngredient = newIngredient.trim();
+    if (!trimmedIngredient) return;
+  
+    if (ingredients.includes(trimmedIngredient)) {
+      alert("Ingredient already exists.");
+      return;
+    }
+  
+    try {
+      const newIngredientData = {
+        name: trimmedIngredient,
+        unit: "pcs",
+        quantity: 1,
+      };
+  
+      const res = await fetch("/api/ingredient", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newIngredientData),
+      });
+  
+      if (res.ok) {
+        setIngredients(prev => [...prev, trimmedIngredient]);
+        setNewIngredient("");
+        setShowPopup(false);
+      } else if (res.status === 409) {
+        alert("Ingredient sudah ada di database.");
+      } else {
+        console.error("API error");
+        alert("Failed to add ingredient.");
+      }
+    } catch (error) {
+      console.error("Failed to add ingredient", error);
+      alert("Network error");
+    }
+  };  
+  
   const [userRecipes, setUserRecipes] = useState<IRecipe[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -95,12 +157,20 @@ const ProfilePage: React.FC = () => {
                   <div className="text-xs lg:text-sm text-gray-500 mt-3 lg:mt-4">
                     <p>Joined since: November 2024</p>
                   </div>
+                  <div className="flex gap-3 mt-3 lg:mt-4">
+                  <button
+                    onClick={() => router.push("/editprofile")}
+                    className="px-4 py-2 text-sm lg:text-base bg-[#85A181] text-white rounded hover:bg-blue-600 transition duration-200"
+                  >
+                    Edit Profile
+                  </button>
                   <button
                     onClick={handleLogout}
-                    className="mt-3 lg:mt-4 px-4 py-2 text-sm lg:text-base bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                    className="px-4 py-2 text-sm lg:text-base bg-[#DD6840] text-white rounded hover:bg-red-600 transition duration-200"
                   >
                     Logout
                   </button>
+                </div>
                 </div>
               </div>
 
@@ -147,7 +217,10 @@ const ProfilePage: React.FC = () => {
           <div className="w-full lg:w-1/2 bg-[#E3E2E2] rounded-lg shadow-md p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
               <h3 className="text-base lg:text-lg font-medium text-gray-800">My Refrigerator</h3>
-              <button className="flex items-center bg-white text-black px-3 py-1.5 lg:px-4 lg:py-2 rounded-full mt-2 sm:mt-0 text-sm lg:text-base">
+              <button
+                onClick={() => setShowPopup(true)}
+                className="flex items-center bg-white text-black px-3 py-1.5 lg:px-4 lg:py-2 rounded-full mt-2 sm:mt-0 text-sm lg:text-base"
+              >
                 <IoMdAdd size={18} className="mr-1 lg:mr-2 text-[#B6DEB0]" /> Add Ingredient
               </button>
             </div>
@@ -162,11 +235,19 @@ const ProfilePage: React.FC = () => {
                 ingredients.map((item, index) => (
                   <div
                     key={index}
-                    className="text-center text-sm p-3 bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 min-w-[100px]"
+                    className="relative text-center text-sm p-3 bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 min-w-[100px]"
                   >
+                    <button
+                      onClick={() => handleRemoveIngredient(index)}
+                      className="absolute top-1 right-1 text-xs text-gray-500 hover:text-red-600"
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
                     {item}
                   </div>
                 ))
+                
               )}
             </div>
 
@@ -225,6 +306,34 @@ const ProfilePage: React.FC = () => {
           </div>
         </section>
       </main>
+          {showPopup && (
+      <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-center items-center">
+        <div className="bg-[#E3E2E2] p-6 rounded-lg shadow-lg w-11/12 max-w-md">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Ingredient</h2>
+          <input
+            type="text"
+            value={newIngredient}
+            onChange={(e) => setNewIngredient(e.target.value)}
+            placeholder="Ingredient name"
+            className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#85A181] mb-4"
+          />
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setShowPopup(false)}
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddIngredient}
+              className="bg-[#85A181] text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
       <Footer />
       <Copyright />
     </div>
