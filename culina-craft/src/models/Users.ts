@@ -1,5 +1,5 @@
 // models/Users.ts
-import { Schema, models, model, Document } from 'mongoose';
+import { Schema, models, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 // Define User Interface (TypeScript)
@@ -7,6 +7,7 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
+  favoriteRecipes: Types.ObjectId[]; // Tambahan: daftar resep favorit
 }
 
 // Create the User Schema
@@ -15,6 +16,12 @@ const userSchema = new Schema<IUser>(
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+
+    // Tambahan: daftar resep favorit (referensi ke koleksi Recipe)
+    favoriteRecipes: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Recipe',
+    }],
   },
   { timestamps: true }
 );
@@ -40,4 +47,5 @@ userSchema.methods.isPasswordMatch = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Export the User model
 export default models.User || model<IUser>('User', userSchema);
