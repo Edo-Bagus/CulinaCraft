@@ -12,7 +12,12 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        poppins: ["var(--font-poppins)", "sans-serif"], // Menambahkan Poppins sebagai font utama
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require("tailwind-scrollbar-hide"), // Menambahkan plugin scrollbar-hide
+  ],
 } satisfies Config;
