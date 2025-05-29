@@ -1,5 +1,6 @@
 import { Poppins } from "next/font/google";
 import "./globals.css"; // Pastikan Tailwind di-import di sini
+import { Suspense } from "react";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -14,8 +15,10 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
+    <Suspense>
     <html lang="en" className={poppins.variable}>
       <body className="font-poppins">{children}</body>
     </html>
+    </Suspense>
   );
 }

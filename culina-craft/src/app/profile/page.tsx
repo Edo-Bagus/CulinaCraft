@@ -19,25 +19,27 @@ const ProfilePage: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
-  const handleRemoveIngredient = async (indexToRemove: number) => {
-    const nameToRemove = ingredients[indexToRemove];
   
-    try {
-      const res = await fetch(`/api/ingredient?name=${encodeURIComponent(nameToRemove)}`, {
-        method: "DELETE",
-      });
-  
-      if (res.ok) {
-        setIngredients(prev => prev.filter((_, idx) => idx !== indexToRemove));
-      } else {
-        console.error("Failed to delete ingredient");
-        alert("Gagal menghapus ingredient.");
-      }
-    } catch (error) {
-      console.error("Error deleting ingredient", error);
-      alert("Terjadi kesalahan saat menghapus.");
+const handleRemoveIngredient = async (indexToRemove: number) => {
+  console.log(ingredients[indexToRemove])
+  const idToRemove = ingredients[indexToRemove]._id;
+
+  try {
+    const res = await fetch(`/api/ingredient?id=${encodeURIComponent(idToRemove)}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      setIngredients(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    } else {
+      console.error("Failed to delete ingredient");
+      alert("Gagal menghapus ingredient.");
     }
-  };
+  } catch (error) {
+    console.error("Error deleting ingredient", error);
+    alert("Terjadi kesalahan saat menghapus.");
+  }
+};
 
   const toggleIngredientSelection = (ingredient: string) => {
   setSelectedIngredients((prev) =>
@@ -46,47 +48,51 @@ const ProfilePage: React.FC = () => {
       : [...prev, ingredient]
   );
 };
+  
+ const handleAddIngredient = async () => {
+  const trimmedIngredient = newIngredient.trim();
+  if (!trimmedIngredient) return;
 
-  
-  const handleAddIngredient = async () => {
-    const trimmedIngredient = newIngredient.trim();
-    if (!trimmedIngredient) return;
-  
-    if (ingredients.includes(trimmedIngredient)) {
-      alert("Ingredient already exists.");
-      return;
+  // Cek duplikat berdasarkan name di array objek
+  if (ingredients.some((item) => item.name.toLowerCase() === trimmedIngredient.toLowerCase())) {
+    alert("Ingredient already exists.");
+    return;
+  }
+
+  try {
+    const newIngredientData = {
+      name: trimmedIngredient,
+      unit: "pcs",
+      quantity: 1,
+    };
+
+    const res = await fetch("/api/ingredient", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newIngredientData),
+    });
+
+    if (res.ok) {
+      const createdIngredient = await res.json();
+      // Tambahkan objek ingredient baru ke state
+      const ingredientsRes = await fetch("/api/ingredient");
+      const ingredientsData = await ingredientsRes.json();
+      setIngredients(ingredientsData);
+      setNewIngredient("");
+      setShowPopup(false);
+    } else if (res.status === 409) {
+      alert("Ingredient sudah ada di database.");
+    } else {
+      console.error("API error");
+      alert("Failed to add ingredient.");
     }
-  
-    try {
-      const newIngredientData = {
-        name: trimmedIngredient,
-        unit: "pcs",
-        quantity: 1,
-      };
-  
-      const res = await fetch("/api/ingredient", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newIngredientData),
-      });
-  
-      if (res.ok) {
-        setIngredients(prev => [...prev, trimmedIngredient]);
-        setNewIngredient("");
-        setShowPopup(false);
-      } else if (res.status === 409) {
-        alert("Ingredient sudah ada di database.");
-      } else {
-        console.error("API error");
-        alert("Failed to add ingredient.");
-      }
-    } catch (error) {
-      console.error("Failed to add ingredient", error);
-      alert("Network error");
-    }
-  };  
+  } catch (error) {
+    console.error("Failed to add ingredient", error);
+    alert("Network error");
+  }
+};
   
   const [userRecipes, setUserRecipes] = useState<IRecipe[]>([]);
   const [ingredients, setIngredients] = useState<string[]>([]);
@@ -104,8 +110,7 @@ const ProfilePage: React.FC = () => {
 
         const ingredientsRes = await fetch("/api/ingredient");
         const ingredientsData = await ingredientsRes.json();
-        const ingredientNames = ingredientsData.map((item: any) => item.name);
-        setIngredients(ingredientNames);
+        setIngredients(ingredientsData);
       } catch (error) {
         console.error("Failed to fetch profile or ingredients", error);
       } finally {
@@ -229,28 +234,6 @@ useEffect(() => {
                     Tried Recipes: <strong>10</strong>
                   </div>
                 </div>
-
-                {/* Preferences */}
-                <div className="mt-4 lg:mt-6 w-full">
-                  <h3 className="font-semibold text-center mb-2 lg:mb-4 text-sm lg:text-base">Preferences</h3>
-
-                  {[
-                    { title: "Western, Asian, Italian", green: "40%", yellow: "30%", lightgreen: "30%" },
-                    { title: "Dessert, Snacks, Main Course", yellow: "30%", green: "40%", lightgreen: "30%" },
-                    { title: "Grilled, Fried, Steamed", lightgreen: "50%", green: "30%", yellow: "20%" },
-                  ].map((pref, index) => (
-                    <div className="mb-3 lg:mb-4" key={index}>
-                      <h4 className="text-xs lg:text-sm font-medium">{pref.title}</h4>
-                      <div className="w-full bg-gray-200 rounded-full h-3 lg:h-4 mt-1 lg:mt-2 flex">
-                        {pref.green && <div className="bg-green-600 h-3 lg:h-4 rounded-l-full" style={{ width: pref.green }} />}
-                        {pref.yellow && <div className="bg-yellow-400 h-3 lg:h-4" style={{ width: pref.yellow }} />}
-                        {pref.lightgreen && <div className="bg-green-400 h-3 lg:h-4 rounded-r-full" style={{ width: pref.lightgreen }} />}
-                      </div>
-                    </div>
-                  ))}
-
-                  <p className="text-xs lg:text-sm text-gray-500">Allergy: Peanuts, Beans</p>
-                </div>
               </div>
             </div>
           </div>
@@ -275,28 +258,29 @@ useEffect(() => {
                 <p className="col-span-full text-center">No ingredients found.</p>
               ) : (
                 ingredients.map((item, index) => (
-  <div
-    key={index}
-    className={`relative text-center text-sm p-3 bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 min-w-[100px] cursor-pointer ${
-      selectedIngredients.includes(item) ? "ring-2 ring-[#85A181]" : ""
-    }`}
-    onClick={() => toggleIngredientSelection(item)}
-  >
-    <button
-      onClick={(e) => {
-        e.stopPropagation(); // agar tidak ikut memilih saat menghapus
-        handleRemoveIngredient(index);
-      }}
-      className="absolute top-1 right-1 text-xs text-gray-500 hover:text-red-600"
-      title="Remove"
-    >
-      ✕
-    </button>
-    {item}
-  </div>
-))              
+                  <div
+                    key={item._id}
+                    className={`relative text-center text-sm p-3 bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 min-w-[100px] cursor-pointer ${
+                      selectedIngredients.includes(item.name) ? "ring-2 ring-[#85A181]" : ""
+                    }`}
+                    onClick={() => toggleIngredientSelection(item.name)}
+                  >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // agar tidak ikut memilih saat menghapus
+                        handleRemoveIngredient(index);
+                      }}
+                      className="absolute top-1 right-1 text-xs text-gray-500 hover:text-red-600"
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
+                    {item.name}
+                  </div>
+                ))
               )}
             </div>
+
 
             <div className="flex justify-start mt-4 lg:mt-6">
               <button

@@ -14,7 +14,9 @@ const Navbar: React.FC = () => {
         {/* Logo */}
         <div className="flex items-center md:-ml-20">
           <div className="relative w-12 h-12 md:w-16 md:h-16">
-            <Image src="/logo.png" alt="CulinaCraft Logo" fill className="object-contain" />
+            <Link href="/">
+              <Image src="/logo.png" alt="CulinaCraft Logo" fill className="object-contain" />
+            </Link>
           </div>
           {/* <h1 className="text-white text-lg md:text-xl font-bold">CulinaCraft</h1> */}
           <h1 className="text-lg md:text-[20px] font-bold ml-0">

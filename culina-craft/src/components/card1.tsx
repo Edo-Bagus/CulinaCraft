@@ -39,9 +39,6 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ id, title, calories, rating, im
 
           {/* Rating & Favorit */}
           <div className="flex items-center mt-2 text-yellow-500">
-            {/* Rating */}
-            <FaStar size={18} />
-            <span className="ml-1 text-black font-normal text-[15px]">{rating}</span>
 
             {/* Favorit Icon di Kanan */}
             <button className="text-[#DD6840] ml-auto">

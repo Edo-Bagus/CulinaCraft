@@ -1,70 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Copyright from "@/components/copyright";
 import RecipeCard from "@/components/card1";
-import SearchBar from "@/components/searchbar";
-
-const dummyRecipes = [
-  {
-    title: "Ayam Penyet Surabaya",
-    calories: 300,
-    protein: 25,
-    carbs: 40,
-    sugar: 5,
-    rating: 4.5,
-    imageUrl: "/resep1.jpg",
-  },
-  {
-    title: "Salad Sayur Sehat",
-    calories: 150,
-    protein: 10,
-    carbs: 15,
-    sugar: 2,
-    rating: 4.2,
-    imageUrl: "/resep1.jpg",
-  },
-  {
-    title: "Nasi Goreng Ayam",
-    calories: 550,
-    protein: 20,
-    carbs: 60,
-    sugar: 7,
-    rating: 4.8,
-    imageUrl: "/resep1.jpg",
-  },
-  {
-    title: "Smoothie Buah",
-    calories: 200,
-    protein: 5,
-    carbs: 35,
-    sugar: 18,
-    rating: 4.3,
-    imageUrl: "/resep1.jpg",
-  },
-  {
-    title: "Oatmeal Tinggi Protein",
-    calories: 400,
-    protein: 30,
-    carbs: 35,
-    sugar: 6,
-    rating: 4.6,
-    imageUrl: "/resep1.jpg",
-  },
-  {
-    title: "Pasta Rendah Gula",
-    calories: 450,
-    protein: 15,
-    carbs: 50,
-    sugar: 3,
-    rating: 4.4,
-    imageUrl: "/resep1.jpg",
-  },
-];
 
 export default function NutrisiPage() {
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [minCaloriesInput, setMinCaloriesInput] = useState("0");
   const [maxCaloriesInput, setMaxCaloriesInput] = useState("1000");
@@ -78,24 +24,58 @@ export default function NutrisiPage() {
     );
   };
 
+  // Build query params for API call based on filters
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+
+    // Sort by calories
+    params.append("sortBy", "calories");
+    params.append("order", sortOrder);
+
+    // Use a large limit or adjust as needed
+    params.append("limit", "100");
+
+    // We'll fetch all and filter on client side for nutrients other than calories
+    return params.toString();
+  };
+
+  // Fetch recipes from API whenever sortOrder changes
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const query = buildQueryParams();
+        const res = await fetch(`/api/recipes?${query}`);
+        if (!res.ok) throw new Error("Failed to fetch recipes");
+        const data = await res.json();
+        setRecipes(data);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecipes();
+  }, [sortOrder]);
+
+  // Filter recipes by nutrition values client-side (protein, sugar, carbs, calories range)
   const filteredRecipes = useMemo(() => {
     const minCalories = parseInt(minCaloriesInput) || 0;
     const maxCalories = parseInt(maxCaloriesInput) || 10000;
 
-    return [...dummyRecipes]
+    return recipes
       .filter((r) => r.calories >= minCalories && r.calories <= maxCalories)
       .filter((r) => {
         return selectedFilters.every((filter) => {
           if (filter === "highProtein") return r.protein >= 20;
           if (filter === "lowSugar") return r.sugar <= 5;
-          if (filter === "highCarbs") return r.carbs >= 40;
+          if (filter === "highCarbs") return r.carbohydrates >= 40;
           return true;
         });
-      })
-      .sort((a, b) =>
-        sortOrder === "asc" ? a.calories - b.calories : b.calories - a.calories
-      );
-  }, [minCaloriesInput, maxCaloriesInput, selectedFilters, sortOrder]);
+      });
+  }, [recipes, minCaloriesInput, maxCaloriesInput, selectedFilters]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -109,11 +89,7 @@ export default function NutrisiPage() {
       </div>
 
       <main className="flex flex-col md:flex-row flex-grow px-6 md:px-12 py-6 gap-8">
-        {/* Sidebar Filter */}
         <aside className="w-full md:w-fit bg-[#F7D197] p-6 rounded-lg flex flex-col h-fit min-w-[280px]">
-
-          
-
           <div className="mb-6">
             <label className="block mb-2 font-semibold text-gray-700">Sort by Calories</label>
             <select
@@ -175,9 +151,7 @@ export default function NutrisiPage() {
           </div>
         </aside>
 
-        {/* Main Content */}
         <section className="flex-1 flex flex-col">
-          {/* Filter Tags */}
           <div className="flex flex-wrap gap-3 mb-4">
             {selectedFilters.map((filter) => (
               <div
@@ -214,7 +188,6 @@ export default function NutrisiPage() {
             )}
           </div>
 
-          {/* Visual Filter Summary */}
           <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg flex flex-wrap items-center justify-between text-orange-700 font-semibold text-sm md:text-base">
             <div>
               Calories:{" "}
@@ -228,9 +201,12 @@ export default function NutrisiPage() {
             </div>
           </div>
 
-          {/* Grid Resep */}
+          {/* Loading & Error handling */}
+          {loading && <p>Loading recipes...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 flex-grow overflow-auto">
-            {filteredRecipes.length === 0 ? (
+            {filteredRecipes.length === 0 && !loading ? (
               <p className="text-center text-gray-500 col-span-full">
                 No recipes match the selected filters.
               </p>
@@ -238,10 +214,11 @@ export default function NutrisiPage() {
               filteredRecipes.map((recipe, index) => (
                 <RecipeCard
                   key={index}
-                  title={recipe.title}
+                  id={String(recipe._id)}
+                  title={recipe.name}
                   calories={`${recipe.calories} cal`}
                   rating={recipe.rating}
-                  imageUrl={recipe.imageUrl}
+                  imageUrl={recipe.imageUrl || "/resep1.jpg"} // fallback image
                 />
               ))
             )}

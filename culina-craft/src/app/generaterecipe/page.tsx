@@ -67,11 +67,46 @@ export default function GenerateRecipePage() {
       }
 
       const data = await response.json();
-      setRecipe(data);
+      setRecipe(data); // pastikan ini object, bukan string
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (recipeName: string, ingredients: string[], steps: string[], calories: number, sugar: number, protein: number, carbohydrates: number) => {
+    const payload = {
+      name: recipeName,
+      ingredients: ingredients,
+      steps: steps,
+      calories: calories,
+      sugar: sugar,
+      protein: protein,
+      carbohydrates: carbohydrates
+
+    };
+    console.log(payload)
+  
+    try {
+      const res = await fetch("/api/recipes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!res.ok) {
+        throw new Error("Failed to upload recipe");
+      }
+  
+      const data = await res.json();
+      console.log("Recipe uploaded:", data);
+      alert("Recipe uploaded successfully!");
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to upload recipe");
     }
   };
 
@@ -125,17 +160,43 @@ export default function GenerateRecipePage() {
 
         {recipe && (
           <div className="bg-white text-black p-6 rounded-2xl w-full max-w-5xl mt-8 shadow-md">
-            <h2 className="text-2xl font-semibold mb-2">{recipe.recipe_name}</h2>
+            <h2 className="text-2xl font-semibold mb-2">{recipe.title}</h2>
+
             <h3 className="font-semibold">Ingredients:</h3>
             <ul className="list-disc list-inside mb-4">
-              {recipe.ingredients.map((item: string, index: number) => (
+              {(recipe.ingredients || []).map((item: string, index: number) => (
                 <li key={index}>{item}</li>
               ))}
             </ul>
+
             <h3 className="font-semibold">Instructions:</h3>
-            <p>{recipe.instructions}</p>
+            <ol className="list-decimal list-inside space-y-1">
+              {(recipe.instructions || []).map((step: string, index: number) => (
+                <li key={index}>{step}</li>
+              ))}
+            </ol>
+
+            <h3 className="font-semibold mb-2">Nutrition:</h3>
+            <ul className="list-disc list-inside mb-4 text-gray-700">
+              <li><strong>Calories:</strong> {recipe.calories} kcal</li>
+              <li><strong>Carbohydrates:</strong> {recipe.carbohydrates} g</li>
+              <li><strong>Protein:</strong> {recipe.protein} g</li>
+              <li><strong>Sugar:</strong> {recipe.sugar} g</li>
+            </ul>
+
+            <div className="flex justify-end mt-6 gap-4">
+            <button 
+              className="bg-[#DD6840] text-white px-4 py-2 rounded-md"
+              onClick={() => handleSubmit(recipe.title, recipe.ingredients, recipe.instructions, recipe.calories, recipe.sugar, recipe.protein, recipe.carbohydrates)}
+            >
+              Submit Recipe
+            </button>
           </div>
+          </div>
+          
         )}
+
+
       </main>
       <Footer />
       <Copyright />

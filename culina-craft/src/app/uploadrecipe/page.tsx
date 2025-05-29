@@ -14,6 +14,38 @@ export default function UploadRecipePage() {
   const [steps, setSteps] = useState([""]);
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const [nutrition, setNutrition] = useState<null | {
+    calories: number;
+    carbohydrates: number;
+    protein: number;
+    sugar: number;
+  }>(null);
+
+  const estimateNutrition = async () => {
+  const ingredientStr = ingredients.filter((item) => item.trim() !== "").join(", ");
+  if (!ingredientStr) return;
+
+  try {
+    const res = await fetch("https://culinacraft-lr06.onrender.com/estimate-nutrition", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ingredients: ingredientStr }),
+    });
+
+    if (!res.ok) throw new Error("Failed to estimate nutrition");
+
+    const data = await res.json();
+    setNutrition(data);
+  } catch (err) {
+    console.error("Nutrition error:", err);
+    setNutrition(null);
+  }
+};
+
+
   
 
   const handleIngredientChange = (index: number, value: string) => {
@@ -51,6 +83,7 @@ export default function UploadRecipePage() {
       name: recipeName,
       ingredients: ingredients.filter((item) => item.trim() !== ""),
       steps: steps.filter((item) => item.trim() !== ""),
+      nutrition: nutrition,
     };
   
     try {
@@ -74,6 +107,7 @@ export default function UploadRecipePage() {
       setRecipeName("");
       setIngredients([""]);
       setSteps([""]);
+      setNutrition(null)
     } catch (error) {
       console.error("Error:", error);
       alert("Failed to upload recipe");
@@ -181,8 +215,27 @@ export default function UploadRecipePage() {
             </div>
           </div>
 
+          {nutrition && (
+            <div className="bg-white text-black p-4 rounded-md mt-4 shadow-md">
+              <h2 className="text-lg font-semibold mb-2">Estimated Nutrition</h2>
+              <ul className="space-y-1">
+                <li><strong>Calories:</strong> {nutrition.calories} kcal</li>
+                <li><strong>Carbohydrates:</strong> {nutrition.carbohydrates} g</li>
+                <li><strong>Protein:</strong> {nutrition.protein} g</li>
+                <li><strong>Sugar:</strong> {nutrition.sugar} g</li>
+              </ul>
+            </div>
+          )}
+
+
           {/* Buttons */}
           <div className="flex justify-end mt-6 gap-4">
+            <button
+              onClick={estimateNutrition}
+              className="bg-[#DD6840] text-white px-4 py-2 rounded-md"
+            >
+              Estimate Nutrition
+            </button>
             <button className="bg-white text-[#DD6840] px-4 py-2 rounded-md border border-[#DD6840]">
               Cancel Upload
             </button>

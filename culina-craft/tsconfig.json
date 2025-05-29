@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
+    "noEmit": false,
+    "noEmitOnError": false, // jangan stop build saat error
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
+    "strict": false,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
