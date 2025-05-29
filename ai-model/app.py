@@ -6,6 +6,8 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import requests
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # Load API key
 load_dotenv()
@@ -20,6 +22,15 @@ tfidf_matrix = vectorizer.fit_transform(df['ingredients'])
 
 # Setup FastAPI
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Input model
 class IngredientInput(BaseModel):

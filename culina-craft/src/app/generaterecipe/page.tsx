@@ -9,17 +9,15 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { useSearchParams } from "next/navigation";
 
 export default function GenerateRecipePage() {
-  // Ambil query params dari URL
   const searchParams = useSearchParams();
-
-  // State bahan yang dipilih
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([""]);
+  const [recipe, setRecipe] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Saat halaman pertama kali load, cek apakah ada query ingredients, jika ada parse dan set state
   useEffect(() => {
     const ingredientsParam = searchParams.get("ingredients");
     if (ingredientsParam) {
-      // Pisahkan berdasarkan koma dan trim tiap elemen, filter elemen kosong
       const ingredientsFromQuery = ingredientsParam
         .split(",")
         .map((item) => item.trim())
@@ -42,8 +40,39 @@ export default function GenerateRecipePage() {
     setSelectedIngredients(selectedIngredients.filter((_, i) => i !== index));
   };
 
-  const handleGenerate = () => {
-    // Placeholder - tidak melakukan apa-apa
+  const handleGenerate = async () => {
+    const cleanedIngredients = selectedIngredients
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+      .join(", ");
+
+    if (!cleanedIngredients) {
+      setError("Please enter at least one ingredient.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setRecipe(null);
+
+    try {
+      const response = await fetch("https://culinacraft-lr06.onrender.com/generate-recipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredients: cleanedIngredients }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate recipe.");
+      }
+
+      const data = await response.json();
+      setRecipe(data);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,11 +114,28 @@ export default function GenerateRecipePage() {
             <button
               onClick={handleGenerate}
               className="bg-[#DD6840] text-white px-4 py-2 rounded-md"
+              disabled={loading}
             >
-              Generate Recipe
+              {loading ? "Generating..." : "Generate Recipe"}
             </button>
           </div>
         </div>
+
+        {error && <p className="text-red-500 mt-4">{error}</p>}
+
+        {recipe && (
+          <div className="bg-white text-black p-6 rounded-2xl w-full max-w-5xl mt-8 shadow-md">
+            <h2 className="text-2xl font-semibold mb-2">{recipe.recipe_name}</h2>
+            <h3 className="font-semibold">Ingredients:</h3>
+            <ul className="list-disc list-inside mb-4">
+              {recipe.ingredients.map((item: string, index: number) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+            <h3 className="font-semibold">Instructions:</h3>
+            <p>{recipe.instructions}</p>
+          </div>
+        )}
       </main>
       <Footer />
       <Copyright />
