@@ -13,7 +13,9 @@ import { IRecipe } from "@/models/Recipe";
 
 const ProfilePage: React.FC = () => {
   const router = useRouter();
+  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [user, setUser] = useState<IUser>();
+  const [favoriteRecipes, setFavoriteRecipes] = useState<IRecipe[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [newIngredient, setNewIngredient] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -36,6 +38,15 @@ const ProfilePage: React.FC = () => {
       alert("Terjadi kesalahan saat menghapus.");
     }
   };
+
+  const toggleIngredientSelection = (ingredient: string) => {
+  setSelectedIngredients((prev) =>
+    prev.includes(ingredient)
+      ? prev.filter((item) => item !== ingredient)
+      : [...prev, ingredient]
+  );
+};
+
   
   const handleAddIngredient = async () => {
     const trimmedIngredient = newIngredient.trim();
@@ -124,6 +135,23 @@ const ProfilePage: React.FC = () => {
     fetchUserRecipes();
   }, [userId]);
 
+useEffect(() => {
+  const fetchFavoriteRecipes = async () => {
+    try {
+      const res = await fetch('/api/account/favorites');
+      if (!res.ok) throw new Error('Failed to fetch favorite recipes');
+      const data = await res.json();
+      setFavoriteRecipes(data.favorites || []); // pastikan array
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchFavoriteRecipes();
+}, []);
+
+
+
   const handleLogout = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -135,6 +163,20 @@ const ProfilePage: React.FC = () => {
       router.push("/login"); // arahkan ke halaman setelah login
     }
   };
+
+  const handleCookNow = () => {
+  if (selectedIngredients.length === 0) {
+    alert("Please select at least one ingredient.");
+    return;
+  }
+
+  const query = new URLSearchParams({
+    ingredients: selectedIngredients.join(",")
+  }).toString();
+
+  router.push(`/generaterecipe?${query}`);
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -233,28 +275,37 @@ const ProfilePage: React.FC = () => {
                 <p className="col-span-full text-center">No ingredients found.</p>
               ) : (
                 ingredients.map((item, index) => (
-                  <div
-                    key={index}
-                    className="relative text-center text-sm p-3 bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 min-w-[100px]"
-                  >
-                    <button
-                      onClick={() => handleRemoveIngredient(index)}
-                      className="absolute top-1 right-1 text-xs text-gray-500 hover:text-red-600"
-                      title="Remove"
-                    >
-                      ✕
-                    </button>
-                    {item}
-                  </div>
-                ))
-                
+  <div
+    key={index}
+    className={`relative text-center text-sm p-3 bg-white rounded-md shadow-md hover:shadow-lg transition-shadow duration-200 min-w-[100px] cursor-pointer ${
+      selectedIngredients.includes(item) ? "ring-2 ring-[#85A181]" : ""
+    }`}
+    onClick={() => toggleIngredientSelection(item)}
+  >
+    <button
+      onClick={(e) => {
+        e.stopPropagation(); // agar tidak ikut memilih saat menghapus
+        handleRemoveIngredient(index);
+      }}
+      className="absolute top-1 right-1 text-xs text-gray-500 hover:text-red-600"
+      title="Remove"
+    >
+      ✕
+    </button>
+    {item}
+  </div>
+))              
               )}
             </div>
 
             <div className="flex justify-start mt-4 lg:mt-6">
-              <button className="flex items-center bg-[#DD6840] text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-full text-sm lg:text-base">
-                <IoMdAdd size={18} className="mr-1 text-[#B6DEB0]" /> Cook Now
-              </button>
+              <button
+  onClick={handleCookNow}
+  className="flex items-center bg-[#DD6840] text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-full text-sm lg:text-base"
+>
+  <IoMdAdd size={18} className="mr-1 text-[#B6DEB0]" /> Cook Now
+</button>
+
             </div>
           </div>
         </div>
@@ -263,18 +314,26 @@ const ProfilePage: React.FC = () => {
         <section className="mt-6">
           <h3 className="text-lg font-medium text-gray-800">Favorite Recipes</h3>
           <div className="flex justify-start space-x-8 py-4 overflow-x-auto w-full scrollbar-hide">
-            {Array(10).fill(null).map((_, index) => (
-              <div key={index} className="min-w-[280px] max-w-[300px] flex-shrink-0">
-                <RecipeCard
-                  title="Ayam Penyet Surabaya Makassar Solo Pekanbaru Jakarta"
-                  calories="300 cal"
-                  rating={4.5}
-                  imageUrl="/resep1.jpg"
-                />
-              </div>
-            ))}
+            {loading ? (
+              <p>Loading favorite recipes...</p>
+            ) : favoriteRecipes.length === 0 ? (
+              <p>No favorite recipes found.</p>
+            ) : (
+              favoriteRecipes.map((recipe) => (
+                <div key={String(recipe._id)} className="min-w-[280px] max-w-[300px] flex-shrink-0">
+                  <RecipeCard
+                    id={String(recipe._id)}
+                    title={recipe.name}
+                    calories={`${recipe.calories} cal`}
+                    rating={recipe.rating}
+                    imageUrl="/resep1.jpg"
+                  />
+                </div>
+              ))
+            )}
           </div>
         </section>
+
 
         {/* My Recipes */}
         <section className="mt-6">
