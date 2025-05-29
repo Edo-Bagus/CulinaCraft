@@ -1,17 +1,19 @@
-# Use an appropriate base image
-FROM python:3.10
+# Use official Python image
+FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy files
-COPY . /app
+# Copy requirements and install
+COPY requirements.txt .
 
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose Jupyter Notebook port
-EXPOSE 8888
+# Copy rest of the app
+COPY . .
 
-# Start Jupyter Notebook
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--allow-root"]
+# Expose port (default for FastAPI via Uvicorn)
+EXPOSE 8000
+
+# Start FastAPI using Uvicorn
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
